@@ -160,6 +160,11 @@ aws ecs execute-command \
   --command "/bin/sh"
 ```
 
+create username & password for login
+```
+python manage.py createsuperuser
+```
+
 
 ## Congratulazioni! 🙂
 _*We have Successfully deployed our Django Application on AWS cloud using ECS and ECR.*_
