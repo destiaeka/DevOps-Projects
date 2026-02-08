@@ -47,7 +47,7 @@ _On the next screen you can see a success message after the successful creation 
 
 ![AWS](/DevOps%20Project-03/image/4.jpg)
 
-_Open any SSH Client in your local machine, take the public IP of your EC2 Instance, and add the pem key and you will be able to access your EC2 machine in my case I am using MobaXterm on Windows:_
+_Open any SSH Client in your local machine, take the public IP of your EC2 Instance, and add the pem key and you will be able to access your EC2 machine in my case I am using Command Prompt on Windows:_
 
 ### To use this repository, run the following command:
 
@@ -67,7 +67,7 @@ _Now let’s install Java packages for Amazon Linux AMI and Let’s check the ve
 
 ![aws](/DevOps%20Project-03/image/6.jpg)
 
-_Now let’s install Jenkins with the below command as shown in the output: After successful installation Let’s enable and start Jenkins service in our EC2 Instance:_
+_Now let’s install Jenkins with the below command as shown in the output. After successful installation Let’s enable and start Jenkins service in our EC2 Instance:_
 
 ![aws](/DevOps%20Project-03/image/7.jpg)
 
@@ -131,7 +131,7 @@ JAVA_HOME,M2,M2_HOME
 * Install Maven Plugin
 * Configure Maven and Java
 
-_To install Maven on our Jenkins Server we will switch to the /opt directory and download the Maven package. Now we will extract the tar.gz file:
+_To install Maven on our Jenkins Server we will switch to the /opt directory and download the Maven package. Now we will extract the tar.gz file:_
 
 ![aws](/DevOps%20Project-03/image/18.jpg)
 
@@ -177,8 +177,6 @@ _We will first install Docker on this EC2 Instance. After the successful install
 ![aws](/DevOps%20Project-03/image/24.jpg)
 
 ### Create Tomcat Docker Container:
-
-_In my previous blog, I deployed a Java code on a Tomcat VM, here in this blog we will deploy on a Tomcat Docker container._
 
 _We will first pull the official Tomcat docker image from the Docker Hub and then run the container out of the same image._
 
@@ -254,7 +252,7 @@ Now is the time to run the docker container out of our customized docker image w
 docker run -d --name tomcat-server -p 8085:8080 tomcatserver
 ```
 
-_Here you should remember that we have already allowed port range 8081–9000 in the security group of our docker EC2 Instance. Let’s verify using the docker ps command:
+_Here you should remember that we have already allowed port range 8081–9000 in the security group of our docker EC2 Instance. Let’s verify using the docker ps command:_
 
 ![aws](/DevOps%20Project-03/image/34.jpg)
 
@@ -360,13 +358,13 @@ We will create a separate directory named docker under the root user of our dock
 _Now let's copy the Dockerfile which we created in earlier steps to this newly created docker directory and change its ownership to dockeradmin as well:_
 
 ```
-mv Dockerfile /opt/docker/
+mv dockerfile /opt/docker/
 cd /opt/docker/
 chown -R dockeradmin:dockeradmin /opt/docker/
 
 ll
 total 4
--rw-r--r-- 1 dockeradmin dockeradmin 89 May 10 12:08 Dockerfile
+-rw-r--r-- 1 dockeradmin dockeradmin 89 May 10 12:08 dockerfile
 ```
 
 ![aws](/DevOps%20Project-03/image/49.jpg)
@@ -405,7 +403,7 @@ In the next step let’s now create a container out of this image with the comma
 ![aws](/DevOps%20Project-03/image/53.jpg)
 
 
-Now let’s access this application from our browser using URL http://54.173.227.226:8086/webapp/
+Now let’s access this application from our browser using URL http://54.167.25.138:8086/webapp/
 
 ![aws](/DevOps%20Project-03/image/54.jpg)
 
