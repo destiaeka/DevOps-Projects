@@ -102,6 +102,8 @@
  - run : ansible-playbook -i hosts jenkins-master.yml || ansible-playbook -i hosts jenkins-agents.yml
 
  - configure jenkins master: login UI, create user, dll (berhubung jenkins ini container buat lihat initial password masuk container baru cat <command>)
+
+=========== STEP 4 =====================
  - configure jenkins agents: manage > nodes > new nodes > isi name > type agent > remote directory : /home/ubuntu/jenkins > labels: maven > usage: Only build jobs with label expressions > 
     Launch method : Launch agent via SSH > Host : IP public agent > Credentials: Add
         - Credentials : kind: SSH Username with private key > username: ubuntu (disesuaikan OS) > private key: copy output cat ~/.ssh/id_ed25519 > add
@@ -119,4 +121,13 @@
         java -version
     nanti saat build job > output console akan kelihatan ubuntu, agent, dan versi java
 
-======== STEP 4 =========
+================== STEP 5 ========================
+ - Add Github Credentials : Manage > global > add credentials > Username: usn GitHub > Password (Access Token) : Setting-Developer Setting-Personal Access Token-Token(classic)-Generate New Token
+    scopes:repo, read:user || tinggal masukin token dari github > OK
+ - Multibranch Pipeline : New Item > name > multibranch pipeline > name > description > Branch Source: Github > Credentials: pilih yang dibuat > URL : Link repo github > validate > 
+    Bahaviors: all branches, The current pull request revision, The current pull request revision > Build Configuration: by Jenkinsfile || Script Path: DevOps Project-04/Jenkinsfile > Save
+
+================ STEP 6 ========================
+- Setup Multibranch Pipeline Webhook : install plugin Multibranch Scan Webhook Trigger 
+- Github Repo Project > setting > webhook > add webhook > payload: http://ip-public-ec2:port/github-webhook/ > content-type: application/json > which event: push event > add webhook
+- Configure Multibranch Pipeline Job di Jenkins: masuk ke job multibranch > configure > Scan Repository Triggers > centang Periodically if not otherwise run : 1 minute, Scan by webhook : token opsional > save
