@@ -118,3 +118,5 @@
         hostname
         java -version
     nanti saat build job > output console akan kelihatan ubuntu, agent, dan versi java
+
+======== STEP 4 =========
