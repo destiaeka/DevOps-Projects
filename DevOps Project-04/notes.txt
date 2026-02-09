@@ -1,0 +1,120 @@
+===== STEP 1 ====
+ - Build infrastructure 
+    - vpc
+    - 3 instance : ansible controller, jenkins master, jenkins agent (public IP, same SG)
+
+===== STEP 2 ======
+ - buat keygen di root
+ - root@ip-192-168-1-96:~# cat ~/.ssh/id_ed25519.pub || ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOxl6cJxCOPou2fWTkjz6l8/arpMN+1Ekf9mGnxIBFC0 root@ip-192-168-1-96 > copy ke ~/.ssh/authorized_keys di master & agent.
+ - chmod 700 /.ssh, chmod 600 /.ssh/authorized_keys || instance master & agent
+ - testing ssh || ssh ubuntu@(IP PUBLIC INSTANCE)
+ - buat folder ~/.ansible > edit hosts
+    [jenkins_master]
+    jenkins-master ansible_host=3.93.80.57 ansible_user=ubuntu
+
+    [jenkins_agents]
+    jenkins-agent ansible_host=52.71.82.248 ansible_user=ubuntu
+ - testing ansible -i hosts jenkins_master -m ping || OUTPUT : SUCCESS PING:PONG
+ - bikin playbook simple untuk testing
+
+====== STEP 3 =======
+ - buat ansible playbook
+   - jenkins-master.yml || pake docker aja biar gampang, ini cuma buat install UI jenkins di instance master
+// jenkins-master.yml //
+---
+- name: Setup Jenkins Master using Docker
+  hosts: jenkins_master
+  become: yes
+
+  tasks:
+    - name: Update apt
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker GPG key
+      shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+        | gpg --dearmor -o /usr/share/keyrings/docker.gpg
+      args:
+        creates: /usr/share/keyrings/docker.gpg
+
+    - name: Add Docker repository
+      copy:
+        dest: /etc/apt/sources.list.d/docker.list
+        content: |
+          deb [arch=amd64 signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Run Jenkins container
+      docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - jenkins_home:/var/jenkins_home
+ 
+ - buat jenkins-agents.yml || buat install java & maven
+ // jenkins-agents.yml //
+ ---
+- name: Setup Jenkins Agent
+  hosts: jenkins_agents
+  become: yes
+
+  tasks:
+    - name: Install Java
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
+
+    - name: Install Maven
+      apt:
+        name: maven
+        state: present 
+ 
+ - run : ansible-playbook -i hosts jenkins-master.yml || ansible-playbook -i hosts jenkins-agents.yml
+
+ - configure jenkins master: login UI, create user, dll (berhubung jenkins ini container buat lihat initial password masuk container baru cat <command>)
+ - configure jenkins agents: manage > nodes > new nodes > isi name > type agent > remote directory : /home/ubuntu/jenkins > labels: maven > usage: Only build jobs with label expressions > 
+    Launch method : Launch agent via SSH > Host : IP public agent > Credentials: Add
+        - Credentials : kind: SSH Username with private key > username: ubuntu (disesuaikan OS) > private key: copy output cat ~/.ssh/id_ed25519 > add
+    Save
+ - ERROR LOG : jenkins disuruh pakai KnownHostsFileKeyVerificationStrategy tapi ga ada /var/jenkins_home/.ssh/known_hosts
+    - Opsi 1 : Configure > node > agent > configure > Host Key Verification Strategy REPLACE Non verifying Verification Strategy
+    - Opsi 2 : masuk container jenkins > 
+        mkdir -p /var/jenkins_home/.ssh
+        ssh-keyscan -H 52.71.82.248 >> /var/jenkins_home/.ssh/known_hosts
+        chmod 700 /var/jenkins_home/.ssh
+        chmod 600 /var/jenkins_home/.ssh/known_hosts
+ - test simple job: new item > name > freestyle project > centang Restrict where this project can be run : isi maven > build step > execute shell >
+        whoami
+        hostname
+        java -version
+    nanti saat build job > output console akan kelihatan ubuntu, agent, dan versi java
