@@ -82,7 +82,7 @@
  
  - buat jenkins-agents.yml || buat install java & maven
  // jenkins-agents.yml //
- ---
+---
 - name: Setup Jenkins Agent
   hosts: jenkins_agents
   become: yes
