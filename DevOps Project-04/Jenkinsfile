@@ -73,20 +73,23 @@ pipeline {
         stage('Upload Artifact to Artifactory') {
             steps {
                 dir('DevOps Project-04') {
-                    rtUpload (
-                        serverId: 'artifactory-server',
-                        spec: """{
-                          "files": [
-                            {
-                              "pattern": "target/*.jar",
-                              "target": "demo-repo/"
-                            }
-                          ]
+                    script {
+                    
+                        def server = Artifactory.server('artifactory-server')
+        
+                        def uploadSpec = """{
+                            "files": [{
+                                "pattern": "target/*.jar",
+                                "target": "demo-repo/"
+                            }]
                         }"""
-                    )
+        
+                        server.upload(uploadSpec)
+                    }
                 }
             }
         }
+
 
         // ================= JAR PUBLISH =================
         stage('Jar Publish') {
