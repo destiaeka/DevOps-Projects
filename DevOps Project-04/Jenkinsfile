@@ -1,6 +1,6 @@
 // ================= GLOBAL VARIABLES =================
-def registry      = 'https://satishk.jfrog.io'
-def imageName     = 'satishk.jfrog.io/satish-docker-local/sample_app'
+def registry      = 'https://trialex7xj8.jfrog.io'
+def imageName     = 'trialex7xj8.jfrog.io/docker-local/sample_app'
 def version       = '2.1.2'
 def projectFolder = 'DevOps Project-04'   // folder pom.xml
 
@@ -17,12 +17,14 @@ pipeline {
 
     stages {
 
+        // ================= CHECKOUT =================
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
+        // ================= DEBUG =================
         stage('Debug Workspace') {
             steps {
                 sh '''
@@ -33,6 +35,7 @@ pipeline {
             }
         }
 
+        // ================= BUILD =================
         stage('Build') {
             steps {
                 dir(projectFolder) {
@@ -41,12 +44,14 @@ pipeline {
             }
         }
 
+        // ================= UNIT TEST =================
         stage('Unit Test') {
             steps {
-                echo '⚠️ Unit test dilewati (VM low resource)'
+                echo 'Unit test dilewati (VM low resource)'
             }
         }
 
+        // ================= SONARCLOUD =================
         stage('SonarCloud Analysis') {
             steps {
                 dir(projectFolder) {
@@ -62,38 +67,41 @@ pipeline {
             }
         }
 
-        // 🔴 QUALITY GATE DIHAPUS (SonarCloud Free tidak support webhook)
-
+        // ================= JAR PUBLISH =================
         stage('Jar Publish') {
             steps {
                 script {
-                    echo '📦 Publishing JAR to Artifactory'
+                    echo 'Publishing JAR to Artifactory'
 
+                    // gunakan credentials Jenkins
                     def server = Artifactory.newServer(
-                        url: registry + "/artifactory",
+                        url: "${registry}/artifactory",
                         credentialsId: "jfrog_cred"
                     )
 
                     def uploadSpec = """{
-                        "files": [
-                            {
-                                "pattern": "${projectFolder}/target/*.jar",
-                                "target": "maven-libs-release-local/",
-                                "flat": "true"
-                            }
-                        ]
+                      "files": [
+                        {
+                          "pattern": "${projectFolder}/target/*.jar",
+                          "target": "maven-libs-release-local/",
+                          "flat": "true"
+                        }
+                      ]
                     }"""
 
                     def buildInfo = server.upload(uploadSpec)
                     server.publishBuildInfo(buildInfo)
+
+                    echo "JAR uploaded to Artifactory"
                 }
             }
         }
 
+        // ================= DOCKER BUILD =================
         stage('Docker Build') {
             steps {
                 script {
-                    echo '🐳 Docker Build'
+                    echo 'Docker Build'
                     dir(projectFolder) {
                         app = docker.build("${imageName}:${version}")
                     }
@@ -101,10 +109,12 @@ pipeline {
             }
         }
 
+        // ================= DOCKER PUSH =================
         stage('Docker Publish') {
             steps {
                 script {
-                    echo '📤 Docker Push'
+                    echo 'Docker Push to Artifactory Registry'
+
                     docker.withRegistry(registry, 'jfrog_cred') {
                         app.push(version)
                     }
@@ -112,9 +122,10 @@ pipeline {
             }
         }
 
+        // ================= HELM DEPLOY =================
         stage('Helm Deploy') {
             steps {
-                echo '☸️ Helm Deploy'
+                echo 'Helm Deploy'
                 sh '''
                 helm upgrade --install sample-app sample-app-1.0.1
                 '''
@@ -122,12 +133,13 @@ pipeline {
         }
     }
 
+    // ================= POST ACTION =================
     post {
         success {
-            echo '✅ Pipeline SUCCESS'
+            echo 'Pipeline SUCCESS'
         }
         failure {
-            echo '❌ Pipeline FAILED'
+            echo 'Pipeline FAILED'
         }
     }
 }
