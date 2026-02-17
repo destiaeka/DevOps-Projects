@@ -131,3 +131,25 @@
 - Setup Multibranch Pipeline Webhook : install plugin Multibranch Scan Webhook Trigger 
 - Github Repo Project > setting > webhook > add webhook > payload: http://ip-public-ec2:port/github-webhook/ > content-type: application/json > which event: push event > add webhook
 - Configure Multibranch Pipeline Job di Jenkins: masuk ke job multibranch > configure > Scan Repository Triggers > centang Periodically if not otherwise run : 1 minute, Scan by webhook : token opsional > save
+
+============== STEP 7 ==========================
+- Login Sonar Cloud  > My Account > Security > Generate Token
+- Login Jenkins > manage > Credentials > (+) Global > Secret Text > Secret: Paste token from sonar cloud, description > save
+- Manage > Plugin > install SonarQube Scanner 
+- Manage > System > Add SonarQube > Name: SonarCloud, ServerUrl: https://sonarcloud.io, Server Authentication: pilih token yang dibuat 
+- Manage > Tools > SonarQube Scanner > Name: SonarScanner, version:automatically > Save
+- Di SonarQube create project pake repository project devops
+- bikin file sonar-project.properties
+  sonar.projectKey=nama-project
+  sonar.projectName=Nama Project
+  sonar.projectVersion=1.0
+
+  sonar.sources=src
+  sonar.sourceEncoding=UTF-8
+- add stage sonarqube on file Jenkinsfile
+
+=================== STEP 8 =====================
+- Sign in Jforg nanti dapat url > Account > Edit Profile > Administration > (+) > description, token scope: user, username: username akun jfrog > save > copy token
+- manage > credentials > (+) global > username with password > username: username akun jfrog, password: token yang di copy, id:jfrog_cred > save
+- manage > plugin > install Jfog Plugin, Artifact Manager Artifactory Plugin
+- manage > system > JFrog Plugin Configuration > (+) > Server ID: artifactory-server, JFrog Platform URL: https://trialex7xj8.jfrog.io/artifactory (ditambah /artifactory), credentials: pilih access token yang dibuat 
