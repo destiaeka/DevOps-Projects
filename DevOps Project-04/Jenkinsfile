@@ -1,6 +1,6 @@
 // ================= GLOBAL VARIABLES =================
-def registry = 'https://trialex7xj8.jfrog.io'
-def imageName = 'trialex7xj8.jfrog.io/docker-trial/sample_app'
+def registry = 'https://trialex7xj8.jfrog.io/docker-devops'
+def imageName = 'trialex7xj8.jfrog.io/docker-devops/sample_app'
 def version       = '2.1.2'
 def projectFolder = 'DevOps Project-04'   // folder pom.xml
 def app
@@ -80,7 +80,7 @@ pipeline {
                         def uploadSpec = """{
                             "files": [{
                                 "pattern": "target/*.jar",
-                                "target": "demo-repo/"
+                                "target": "docker-devops/"
                             }]
                         }"""
         
