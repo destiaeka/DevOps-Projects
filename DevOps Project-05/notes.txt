@@ -1,0 +1,50 @@
+//================= BUILD THE INFRASTRUCTUR USING IAC ============================
+cd terraform
+terraform plan
+terraform apply
+
+!!NOTE!!
+make sure udah setting credentials > hapus dulu baru aws configure
+Remove-Item Env:AWS_ACCESS_KEY_ID
+Remove-Item Env:AWS_SECRET_ACCESS_KEY
+Remove-Item Env:AWS_SESSION_TOKEN
+
+//===================== KASIH AKSES KUBECTL KE EKS CLUSTER ================================
+aws sts get-caller-identity
+aws eks update-kubeconfig --region {region} --name {nama-cluster}
+kubectl get nodes
+
+// ================= BUAT MANIFEST FILE ===========================
+create pod & loadbalancer service
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tictactoe-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: tictactoe-pod
+    image: destiaeka/tictactoe
+    ports:
+      - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tictactoe-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: myapp
+  ports:
+    - port: 80
+      targetPort: 80
+
+kubectl apply -f game.yml
+kubectl get all
+
+!!NOTES!!
+di file terraform biar tau nama addonnya pake perintah
+aws eks describe-addon-versions --query "addons[].addonName" --output table > paste di powershell
