@@ -1,5 +1,5 @@
-FROM openjdk:8-jdk-slim
+FROM openjdk:8
 
-COPY target/*.jar sample_app.jar
+COPY target/demo-workshop-2.1.2.jar sample_app.jar
 
-ENTRYPOINT ["java","-jar","/sample_app.jar"]
+ENTRYPOINT ["java","-jar","sample_app.jar"]

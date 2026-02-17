@@ -1,5 +1,5 @@
 // ================= GLOBAL VARIABLES =================
-def registry = 'https://trialex7xj8.jfrog.io/docker-devops'
+def registry = 'https://trialex7xj8.jfrog.io'
 def imageName = 'trialex7xj8.jfrog.io/docker-devops/sample_app'
 def version       = '2.1.2'
 def projectFolder = 'DevOps Project-04'   // folder pom.xml
@@ -122,25 +122,23 @@ pipeline {
         }
 
         // ================= DOCKER BUILD =================
-        stage('Docker Build') {
-            steps {
-                script {
-                    echo 'Docker Build'
-                    dir(projectFolder) {
-                        app = docker.build("${imageName}:${version}")
-                    }
+       stage('Docker Build') {
+        steps {
+            script {
+                dir(projectFolder) {
+                    app = docker.build("${imageName}:${version}")
                 }
             }
         }
+    }
 
         // ================= DOCKER PUSH =================
         stage('Docker Publish') {
             steps {
                 script {
-                    echo 'Docker Push to Artifactory Registry'
-
                     docker.withRegistry(registry, 'jfrog_cred') {
-                        app.push(version)
+                        app.push("${version}")
+                        app.push("latest")
                     }
                 }
             }
