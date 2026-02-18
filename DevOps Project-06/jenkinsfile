@@ -15,7 +15,7 @@ pipeline{
         }
         stage('Checkout from Git') {
             steps {
-                dir('DevOps Project-6') { // masuk ke subfolder
+                dir('DevOps Project-06') { // masuk ke subfolder
                     git branch: 'main', url: 'https://github.com/destiaeka/DevOps-Projects.git', credentialsId: 'github-token'
                 }
             }
