@@ -7,7 +7,8 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
+        SCANNER_HOME = tool('sonar-scanner')
+        PROJECT_DIR = 'DevOps Project-06'
     }
 
     stages {
@@ -20,7 +21,7 @@ pipeline {
 
         stage('Checkout Source Code') {
             steps {
-                dir('DevOps Project-06') {
+                dir(env.PROJECT_DIR) {
                     git branch: 'main',
                         url: 'https://github.com/destiaeka/DevOps-Projects.git',
                         credentialsId: 'github-token'
@@ -30,12 +31,12 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                dir('DevOps Project-06') {
+                dir(env.PROJECT_DIR) {
                     withSonarQubeEnv('sonar-server') {
                         sh """
                         ${SCANNER_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectName=Netflix \
                         -Dsonar.projectKey=Netflix \
+                        -Dsonar.projectName=Netflix \
                         -Dsonar.sources=. \
                         -Dsonar.exclusions=**/*.java
                         """
@@ -46,10 +47,15 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    script {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
                         def qg = waitForQualityGate abortPipeline: false
-                        echo "Quality Gate Status: ${qg.status}"
+                        echo "Quality Gate Result: ${qg.status}"
+
+                        // supaya jelas di Jenkins UI
+                        if (qg.status != 'OK') {
+                            currentBuild.result = 'UNSTABLE'
+                        }
                     }
                 }
             }
@@ -57,7 +63,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                dir('DevOps Project-06') {
+                dir(env.PROJECT_DIR) {
                     sh 'npm install'
                 }
             }
@@ -65,7 +71,7 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                dir('DevOps Project-06') {
+                dir(env.PROJECT_DIR) {
                     sh 'npm run build || true'
                 }
             }
@@ -78,22 +84,26 @@ pipeline {
                 attachLog: true,
                 subject: "Build Result: ${currentBuild.result}",
                 body: """
-                Project : ${env.JOB_NAME}
-                Build   : #${env.BUILD_NUMBER}
-                Status  : ${currentBuild.result}
-                URL     : ${env.BUILD_URL}
-                """,
+Project : ${env.JOB_NAME}
+Build   : #${env.BUILD_NUMBER}
+Status  : ${currentBuild.result}
+URL     : ${env.BUILD_URL}
+""",
                 to: 'destiaeka38@gmail.com',
                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
             )
         }
 
         success {
-            echo "Pipeline completed successfully!"
+            echo "✅ Pipeline completed successfully!"
+        }
+
+        unstable {
+            echo "⚠️ Build unstable (Quality Gate failed but pipeline continued)"
         }
 
         failure {
-            echo "Pipeline failed. Check SonarQube or build logs."
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
