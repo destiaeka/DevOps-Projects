@@ -1,10 +1,12 @@
 {
-  "name": "netflix-project",
+  "name": "devops-project-06",
   "version": "1.0.0",
-  "description": "DevOps Project-06",
+  "description": "![devsecops](https://imgur.com/vORuBnK.png)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {}
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
