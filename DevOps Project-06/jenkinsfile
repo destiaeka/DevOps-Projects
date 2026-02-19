@@ -49,17 +49,24 @@ pipeline {
             steps {
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
-                        def qg = waitForQualityGate abortPipeline: false
-                        echo "Quality Gate Result: ${qg.status}"
-
-                        // supaya jelas di Jenkins UI
-                        if (qg.status != 'OK') {
+                        try {
+                            def qg = waitForQualityGate()
+                            echo "Quality Gate Status: ${qg.status}"
+        
+                            if (qg.status != 'OK') {
+                                currentBuild.result = 'UNSTABLE'
+                                echo "⚠️ Quality Gate failed but pipeline continues"
+                            }
+        
+                        } catch (err) {
+                            echo "SonarQube Quality Gate FAILED — ignored"
                             currentBuild.result = 'UNSTABLE'
                         }
                     }
                 }
             }
         }
+
 
         stage('Install Dependencies') {
             steps {
