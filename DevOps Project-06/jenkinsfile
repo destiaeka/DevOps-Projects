@@ -67,6 +67,8 @@ pipeline {
             }
         }
 
+    }
+
     post {
         always {
             emailext(
@@ -84,15 +86,15 @@ URL     : ${env.BUILD_URL}
         }
 
         success {
-            echo "✅ Pipeline completed successfully!"
+            echo "Pipeline completed successfully!"
         }
 
         unstable {
-            echo "⚠️ Build unstable (Quality Gate failed but pipeline continued)"
+            echo "Build unstable (Quality Gate failed but pipeline continued)"
         }
 
         failure {
-            echo "❌ Pipeline failed. Check logs."
+            echo "Pipeline failed. Check logs."
         }
     }
 }
