@@ -1,42 +1,48 @@
-pipeline{
+pipeline {
     agent any
-    tools{
+    tools {
         jdk 'jdk17'
         nodejs 'node16'
     }
     environment {
-        SCANNER_HOME=tool 'sonar-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'
     }
     stages {
-        stage('clean workspace'){
-            steps{
+        stage('Clean workspace') {
+            steps {
                 cleanWs()
             }
         }
-        stage('Checkout from Git'){
+        stage('Checkout from Git') {
             steps {
                 dir('DevOps Project-06') {
-                    git branch: 'main', url: 'https://github.com/destiaeka/DevOps-Projects.git', credentialsId: 'github-token'
+                    git branch: 'main', 
+                        url: 'https://github.com/destiaeka/DevOps-Projects.git', 
+                        credentialsId: 'github-token'
                 }
             }
         }
-        stage("Sonarqube Analysis "){
-            steps{
-                withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
-                    -Dsonar.projectKey=Netflix '''
+        stage('Sonarqube Analysis') {
+            steps {
+                dir('DevOps Project-06') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh '''$SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=Netflix \
+                            -Dsonar.projectKey=Netflix \
+                            -Dsonar.exclusions=**/*.java'''
+                    }
                 }
             }
         }
-        stage("quality gate"){
-           steps {
+        stage('Quality Gate') {
+            steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                 }
-            } 
+            }
         }
         stage('Install Dependencies') {
-             steps {
+            steps {
                 dir('DevOps Project-06') {
                     sh "npm install"
                 }
@@ -44,14 +50,14 @@ pipeline{
         }
     }
     post {
-     always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'destiaeka38@gmail.com',
-            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'destiaeka38@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
