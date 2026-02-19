@@ -67,15 +67,6 @@ pipeline {
             }
         }
 
-        stage('Build Application') {
-            steps {
-                dir(env.PROJECT_DIR) {
-                    sh 'npm run build || true'
-                }
-            }
-        }
-    }
-
     post {
         always {
             emailext(
