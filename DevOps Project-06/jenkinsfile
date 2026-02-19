@@ -1,63 +1,99 @@
 pipeline {
     agent any
+
     tools {
         jdk 'jdk17'
         nodejs 'node16'
     }
+
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
     }
+
     stages {
-        stage('Clean workspace') {
+
+        stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
-        stage('Checkout from Git') {
+
+        stage('Checkout Source Code') {
             steps {
                 dir('DevOps Project-06') {
-                    git branch: 'main', 
-                        url: 'https://github.com/destiaeka/DevOps-Projects.git', 
+                    git branch: 'main',
+                        url: 'https://github.com/destiaeka/DevOps-Projects.git',
                         credentialsId: 'github-token'
                 }
             }
         }
-        stage('Sonarqube Analysis') {
+
+        stage('SonarQube Analysis') {
             steps {
                 dir('DevOps Project-06') {
                     withSonarQubeEnv('sonar-server') {
-                        sh '''$SCANNER_HOME/bin/sonar-scanner \
-                            -Dsonar.projectName=Netflix \
-                            -Dsonar.projectKey=Netflix \
-                            -Dsonar.exclusions=**/*.java'''
+                        sh """
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectName=Netflix \
+                        -Dsonar.projectKey=Netflix \
+                        -Dsonar.sources=. \
+                        -Dsonar.exclusions=**/*.java
+                        """
                     }
                 }
             }
         }
+
         stage('Quality Gate') {
             steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                timeout(time: 5, unit: 'MINUTES') {
+                    script {
+                        def qg = waitForQualityGate abortPipeline: false
+                        echo "Quality Gate Status: ${qg.status}"
+                    }
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 dir('DevOps Project-06') {
-                    sh "npm install"
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build Application') {
+            steps {
+                dir('DevOps Project-06') {
+                    sh 'npm run build || true'
                 }
             }
         }
     }
+
     post {
         always {
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>",
+            emailext(
+                attachLog: true,
+                subject: "Build Result: ${currentBuild.result}",
+                body: """
+                Project : ${env.JOB_NAME}
+                Build   : #${env.BUILD_NUMBER}
+                Status  : ${currentBuild.result}
+                URL     : ${env.BUILD_URL}
+                """,
                 to: 'destiaeka38@gmail.com',
                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+            )
+        }
+
+        success {
+            echo "Pipeline completed successfully!"
+        }
+
+        failure {
+            echo "Pipeline failed. Check SonarQube or build logs."
         }
     }
 }
