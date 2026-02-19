@@ -1,0 +1,10 @@
+{
+  "name": "netflix-project",
+  "version": "1.0.0",
+  "description": "DevOps Project-06",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {}
+}
