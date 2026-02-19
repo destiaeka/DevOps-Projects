@@ -52,26 +52,17 @@ pipeline {
                         try {
                             def qg = waitForQualityGate()
                             echo "Quality Gate Status: ${qg.status}"
-        
+
                             if (qg.status != 'OK') {
                                 currentBuild.result = 'UNSTABLE'
                                 echo "⚠️ Quality Gate failed but pipeline continues"
                             }
-        
+
                         } catch (err) {
                             echo "SonarQube Quality Gate FAILED — ignored"
                             currentBuild.result = 'UNSTABLE'
                         }
                     }
-                }
-            }
-        }
-
-
-        stage('Install Dependencies') {
-            steps {
-                dir(env.PROJECT_DIR) {
-                    sh 'npm install'
                 }
             }
         }
