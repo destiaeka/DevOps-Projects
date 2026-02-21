@@ -1,100 +1,102 @@
-pipeline {
+pipeline{
     agent any
-
-    tools {
+    tools{
         jdk 'jdk17'
         nodejs 'node16'
     }
-
     environment {
-        SCANNER_HOME = tool('sonar-scanner')
-        PROJECT_DIR = 'DevOps Project-06'
+        SCANNER_HOME=tool 'sonar-scanner'
     }
-
     stages {
-
-        stage('Clean Workspace') {
-            steps {
+        stage('clean workspace'){
+            steps{
                 cleanWs()
             }
         }
-
-        stage('Checkout Source Code') {
-            steps {
-                dir(env.PROJECT_DIR) {
-                    git branch: 'main',
-                        url: 'https://github.com/destiaeka/DevOps-Projects.git',
-                        credentialsId: 'github-token'
+        stage('Checkout from Git'){
+            steps{
+                git branch: 'main', url: 'https://github.com/Aj7Ay/Netflix-clone.git'
+            }
+        }
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    -Dsonar.projectKey=Netflix '''
                 }
             }
         }
-
-        stage('SonarQube Analysis') {
+        stage("quality gate"){
+           steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                }
+            } 
+        }
+        stage('Install Dependencies') {
             steps {
-                dir(env.PROJECT_DIR) {
-                    withSonarQubeEnv('sonar-server') {
-                        sh """
-                        ${SCANNER_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectKey=Netflix \
-                        -Dsonar.projectName=Netflix \
-                        -Dsonar.sources=. \
-                        -Dsonar.exclusions=**/*.java
-                        """
+                sh "npm install"
+            }
+        }
+        stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+        stage("Docker Build & Push"){
+            steps{
+                script{
+                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                       withCredentials([string(credentialsId: 'tmdb-api-key', variable: 'TMDB_V3_API_KEY')]) {
+                           sh "docker build --build-arg TMDB_V3_API_KEY=${TMDB_V3_API_KEY} -t netflix:${env.BUILD_NUMBER} ."
+                           sh "docker tag netflix:${env.BUILD_NUMBER} rutik/netflix:${env.BUILD_NUMBER}"
+                           sh "docker tag netflix:${env.BUILD_NUMBER} rutik/netflix:latest"
+                           sh "docker push rutik/netflix:${env.BUILD_NUMBER}"
+                           sh "docker push rutik/netflix:latest"
+                       }
                     }
                 }
             }
         }
-
-        stage('Quality Gate') {
-            steps {
-                script {
-                    timeout(time: 5, unit: 'MINUTES') {
-                        try {
-                            def qg = waitForQualityGate()
-                            echo "Quality Gate Status: ${qg.status}"
-
-                            if (qg.status != 'OK') {
-                                currentBuild.result = 'UNSTABLE'
-                                echo "⚠️ Quality Gate failed but pipeline continues"
-                            }
-
-                        } catch (err) {
-                            echo "SonarQube Quality Gate FAILED — ignored"
-                            currentBuild.result = 'UNSTABLE'
-                        }
+        stage("TRIVY"){
+            steps{
+                sh "trivy image --exit-code 1 --severity HIGH,CRITICAL rutik/netflix:${env.BUILD_NUMBER} > trivyimage.txt" 
+            }
+        }
+        stage('Deploy to container'){
+            steps{
+                sh 'docker run -d --name netflix -p 8081:80 rutik/netflix:latest'
+            }
+        }
+        stage('Deploy to kubernets'){
+            steps{
+                script{
+                    dir('Kubernetes') {
+                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                                sh 'kubectl apply -f deployment.yml'
+                                sh 'kubectl apply -f service.yml'
+                        }   
                     }
                 }
             }
         }
 
     }
-
     post {
-        always {
-            emailext(
-                attachLog: true,
-                subject: "Build Result: ${currentBuild.result}",
-                body: """
-Project : ${env.JOB_NAME}
-Build   : #${env.BUILD_NUMBER}
-Status  : ${currentBuild.result}
-URL     : ${env.BUILD_URL}
-""",
-                to: 'destiaeka38@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
-            )
-        }
-
-        success {
-            echo "Pipeline completed successfully!"
-        }
-
-        unstable {
-            echo "Build unstable (Quality Gate failed but pipeline continued)"
-        }
-
-        failure {
-            echo "Pipeline failed. Check logs."
+     always {
+        emailext attachLog: true,
+            subject: "'${currentBuild.result}'",
+            body: "Project: ${env.JOB_NAME}<br/>" +
+                "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                "URL: ${env.BUILD_URL}<br/>",
+            to: 'destiaeka38@gmail.com',
+            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
