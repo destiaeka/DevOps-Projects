@@ -43,7 +43,7 @@ curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/inst
 ## Create a TMDB API Key 
 Seatch TMDB > Sign in Account > Setting > API > Create API > copy API Key
 
-## =================== Install Prometheus and Grafana On the new Server. =====================
+##  Install Prometheus and Grafana On the new Server.
 1. Prometheus
 ```
 [root@ip-172-31-32-5 ~]# sudo useradd \
@@ -464,13 +464,13 @@ kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Doc
 ```
 
 ##  JOIN MASTER -NODE WORKER 
-```bash
+```
 sudo kubeadm join 172.31.39.255:6443 --token xxxxx --discovery-token-ca-cert-hash sha256:xxxxx
-
+```
 ##  MASTER NODE 
-```bash
+```
 cat ~/.kube/config --> copy isinya simpan di file secret-file.txt
-
+```
 ## ===================== CREDENTIALS & PLUGIN JENKINS =================
 manage > credential > (+) > secert file > updload file secret-file.txt > save
 plugin > install kubernetes & kubernetes CLI
