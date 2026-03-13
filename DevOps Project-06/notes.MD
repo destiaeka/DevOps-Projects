@@ -1,4 +1,4 @@
-## Install Jenkins, Docker and Trivy. Create a Sonarqube Container using Docker. || AWS LINUX
+## Install Jenkins, Docker and Trivy. Create a  Container using Docker. || AWS LINUX
 1. Install Java
 ```
 sudo amazon-linux-extras enable corretto17
@@ -29,7 +29,7 @@ newgrp docker
 sudo chmod 777 /var/run/docker.sock
 
 [root@ip-172-31-32-5 ~]# systemctl start docker
-[root@ip-172-31-32-5 ~]# docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+[root@ip-172-31-32-5 ~]# docker run -d --name sonar -p 9000:9000 :lts-community
 ```
 
 5. Trivy
@@ -243,7 +243,7 @@ Manage > Credentials > usn: email > pass: token
 - Manage Jenkins > System > Extended E-mail Notification > SMTP server : smtp.gmail.com > SMTP Port : 587 > Advance > Credential select that you create > Use TLS
 - E-mail Notification > SMTP Server : smtp.gmail.com > Advance > Use SMTP Authentication > user : usn email > password : password app from gmail > Use TLS > SMTP Port : 587 > Test configuration > Save
 
-## Install Plugins like JDK, Sonarqube Scanner, Nodejs, and OWASP Dependency Check
+## Install Plugins like JDK,  Scanner, Nodejs, and OWASP Dependency Check
 1. Manage > Plugin > Install
     - Eclipse Temurin Installer 
     - SonarQube Scanner 
@@ -255,7 +255,6 @@ Manage > Credentials > usn: email > pass: token
 
 
 ##  Create a Pipeline Project in Jenkins using a Declarative Pipeline 
-    SONARQUBE
 1. My Account > Security > Generate Token > name > type:Global Analys Token > Generate
 2. Administration > Webooks > Create > Name : webhook > URL : http://100.24.30.51:8080/sonarqube-webhook/ > create
 3. Credentials > Secret Text > Secret : token from sonarqube > id: sonar-token (sesuaikan jenkinsfile) > Save
@@ -471,11 +470,11 @@ sudo kubeadm join 172.31.39.255:6443 --token xxxxx --discovery-token-ca-cert-has
 ```
 cat ~/.kube/config --> copy isinya simpan di file secret-file.txt
 ```
-## ===================== CREDENTIALS & PLUGIN JENKINS =================
+## CREDENTIALS & PLUGIN JENKINS 
 manage > credential > (+) > secert file > updload file secret-file.txt > save
 plugin > install kubernetes & kubernetes CLI
 
-## ================ INSTALL NODE EXPORTER MASTER & AGENT ======================
+## INSTALL NODE EXPORTER MASTER & AGENT 
 ```
 sudo useradd \
     --system \
@@ -553,7 +552,7 @@ pipeline {
         }
         stage("Sonarqube Analysis") {
             steps {
-                withSonarQubeEnv('sonar-server') {
+                withEnv('sonar-server') {
                     sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
                     -Dsonar.projectKey=Netflix '''
                 }
