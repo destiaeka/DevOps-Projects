@@ -1,4 +1,4 @@
-## ================ Install Jenkins, Docker and Trivy. Create a Sonarqube Container using Docker. =================== || AWS LINUX
+## Install Jenkins, Docker and Trivy. Create a Sonarqube Container using Docker. || AWS LINUX
 1. Install Java
 ```
 sudo amazon-linux-extras enable corretto17
@@ -40,7 +40,7 @@ curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/inst
 ```
 
 
-## ==================== Create a TMDB API Key =================================
+## Create a TMDB API Key 
 Seatch TMDB > Sign in Account > Setting > API > Create API > copy API Key
 
 ## =================== Install Prometheus and Grafana On the new Server. =====================
@@ -95,6 +95,7 @@ sudo systemctl status prometheus
 ```
 
 2. Node Exporter
+```
 [root@ip-172-31-32-5 ~]# sudo useradd \
     --system \
     --no-create-home \
@@ -156,10 +157,12 @@ Checking /etc/prometheus/prometheus.yml
  SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
 
 [root@ip-172-31-32-5 ~]# curl -X POST http://localhost:9090/-/reload
+```
 
 !!AKSES IP-PUBLIC:9090/targets!!
 
 3. Grafana
+```
 [root@ip-172-31-32-5 ~]# sudo yum update -y
 sudo yum install -y wget tar libatomic git
 [root@ip-172-31-32-5 ~]# sudo tee /etc/yum.repos.d/grafana.repo <<EOF
@@ -186,17 +189,18 @@ Created symlink /etc/systemd/system/multi-user.target.wants/grafana-server.servi
 ● grafana-server.service - Grafana instance
      Loaded: loaded (/usr/lib/systemd/system/grafana-server.service; enabled; preset: disabled)
      Active: active (running) since Tue 2026-02-24 12:24:36 UTC; 647ms ago
-
+```
 4. Akses
 - IP PUBLIC:3000 > admin:admin > Connections > Add data source > Prometheus > IP Public:9090 > Save & targets
 - Dahsboard > Import > 1860 > load > import
 
 
-## =========================== Install the Prometheus Plugin and Integrate it with the Prometheus server. =====================================
+## Install the Prometheus Plugin and Integrate it with the Prometheus server. 
 1. Add Prometheus Plugin on Jenkins
 Manage > Plugins > Install Prometheus
 
 2. Configure prometheus.yml
+```
 [root@ip-172-31-32-5 ~]# nano /etc/prometheus/prometheus.yml
 [root@ip-172-31-32-5 ~]# cat /etc/prometheus/prometheus.yml
 # my global config
@@ -220,6 +224,7 @@ scrape_configs:
       - targets: ['100.24.30.51:8080']
 [root@ip-172-31-32-5 ~]# curl -X POST http://localhost:9090/-/reload
 [root@ip-172-31-32-5 ~]# systemctl restart jenkins
+```
 
 !!NOTED!!
 AKSES IP PUBLIC:9090/targets --> pastikan jenkins up
@@ -227,7 +232,7 @@ AKSES IP PUBLIC:9090/targets --> pastikan jenkins up
 3. Add Jenkins Monitoring Dahsboard
 - Dahsboard > Import > 9964 > Load > import
 
-## ========================= Email Integration With Jenkins and Plugin setup. =====================
+## Email Integration With Jenkins and Plugin setup. 
 1. Create App passwod
 https://myaccount.google.com/apppasswords
 
@@ -238,7 +243,7 @@ Manage > Credentials > usn: email > pass: token
 - Manage Jenkins > System > Extended E-mail Notification > SMTP server : smtp.gmail.com > SMTP Port : 587 > Advance > Credential select that you create > Use TLS
 - E-mail Notification > SMTP Server : smtp.gmail.com > Advance > Use SMTP Authentication > user : usn email > password : password app from gmail > Use TLS > SMTP Port : 587 > Test configuration > Save
 
-## ======================= Install Plugins like JDK, Sonarqube Scanner, Nodejs, and OWASP Dependency Check. ===================
+## Install Plugins like JDK, Sonarqube Scanner, Nodejs, and OWASP Dependency Check
 1. Manage > Plugin > Install
     - Eclipse Temurin Installer 
     - SonarQube Scanner 
@@ -249,15 +254,16 @@ Manage > Credentials > usn: email > pass: token
 3. Job > + > name: netflix > pipeline
 
 
-## ========================== Create a Pipeline Project in Jenkins using a Declarative Pipeline ==================================
+##  Create a Pipeline Project in Jenkins using a Declarative Pipeline 
     SONARQUBE
 1. My Account > Security > Generate Token > name > type:Global Analys Token > Generate
 2. Administration > Webooks > Create > Name : webhook > URL : http://100.24.30.51:8080/sonarqube-webhook/ > create
 3. Credentials > Secret Text > Secret : token from sonarqube > id: sonar-token (sesuaikan jenkinsfile) > Save
 4. System > Add Sonar Installation > name: sonar-server (sesuaikan jenkinsfile) > IP sonarqube > Authentication pilih credentials yang dibuat
 
-========================== Test Pipeline ===========================
+##  Test Pipeline 
 Job > Netflix > script
+```
 pipeline {
     agent any
     tools {
@@ -305,13 +311,15 @@ pipeline {
         }
     }
 }
+```
 
 Save > Build Now
 
-## ==================================== Install OWASP Dependency Check Plugins ======================
+##  Install OWASP Dependency Check Plugins 
 1. manage > plugins >  OWASP Dependency-check
 2. tools > Dependency-Check installations > Name: DP-Check > Installation automatic from github
 3. tambahkan stage trivy sebelum post
+```
 stage('TRIVY FS SCAN') {
     steps {
         dir('DevOps Project-06') {
@@ -319,15 +327,16 @@ stage('TRIVY FS SCAN') {
         }
     }
 }
+```
 
 
-## =================================== Docker Image Build and Push ===============================
+##  Docker Image Build and Push 
 1. manage > plugins > install dockef & docker pipeline
 2. docker hub > account > access token > Generate
 3. credential > username & password > usn: usn dockerhub > password: token
 4. tools > docker > Name: docker > install automatic
 5. system > Declarative Pipeline (Docker) > docker label : docker > registry url kosong gpp > credentials : pilih yang dibuat
-
+```
 script:
 pipeline {
     agent any
@@ -398,8 +407,10 @@ pipeline {
         }
     }
 }
+```
 
-## ===================== INSTALL K8S JENKINS =================
+##  INSTALL K8S JENKINS 
+```
 [root@ip-172-31-32-5 ~]# sudo yum update -y
 sudo yum install -y curl
 [root@ip-172-31-32-5 ~]# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -408,8 +419,10 @@ sudo mv kubectl /usr/local/bin/
 [root@ip-172-31-32-5 ~]# kubectl version --client
 Client Version: v1.35.1
 Kustomize Version: v5.7.1
+```
 
-## ====================== INSTALL K8S MASTER - AGENT ==================
+## INSTALL K8S MASTER - AGENT 
+```
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -418,8 +431,10 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 kubectl version --client
 kubeadm version
+```
 
-## ===================== ENABLE IP FORWARD & CONTAINERD ===================
+##  ENABLE IP FORWARD & CONTAINERD 
+```
 sudo modprobe br_netfilter
 echo "br_netfilter" | sudo tee /etc/modules-load.d/br_netfilter.conf
 sudo tee /etc/sysctl.d/k8s.conf <<EOF
@@ -437,18 +452,23 @@ sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/conf
 sudo systemctl restart containerd
 sudo systemctl enable containerd
 sudo systemctl status containerd
+```
 
-## ========================== MASTER AGENT ====================
+##  MASTER AGENT 
+```
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 export KUBECONFIG=/etc/kubernetes/admin.conf
 echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bashrc
 source ~/.bashrc
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+```
 
-## ====================== JOIN MASTER -NODE WORKER =======================
+##  JOIN MASTER -NODE WORKER 
+```bash
 sudo kubeadm join 172.31.39.255:6443 --token xxxxx --discovery-token-ca-cert-hash sha256:xxxxx
 
-## ===================== MASTER NODE ====================
+##  MASTER NODE 
+```bash
 cat ~/.kube/config --> copy isinya simpan di file secret-file.txt
 
 ## ===================== CREDENTIALS & PLUGIN JENKINS =================
@@ -456,6 +476,7 @@ manage > credential > (+) > secert file > updload file secret-file.txt > save
 plugin > install kubernetes & kubernetes CLI
 
 ## ================ INSTALL NODE EXPORTER MASTER & AGENT ======================
+```
 sudo useradd \
     --system \
     --no-create-home \
@@ -489,9 +510,10 @@ WantedBy=multi-user.target
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
 sudo systemctl status node_exporter
+```
 
-
-## ========================= SERVER JENKINS ===============================
+##  SERVER JENKINS 
+```
 nano /etc/prometheus/prometheus.yml
   - job_name: node_export_masterk8s
     static_configs:
@@ -503,8 +525,10 @@ nano /etc/prometheus/prometheus.yml
 promtool check config /etc/prometheus/prometheus.yml
 curl -X POST http://localhost:9090/-/reload
 http://<ip>:9090/targets
+```
 
-## ======================= SCRIPT JENKINS ============================
+##  SCRIPT JENKINS 
+```
 pipeline {
     agent any
     tools {
@@ -586,4 +610,4 @@ pipeline {
         }
     }
 }
-
+```
