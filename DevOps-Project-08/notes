@@ -1,0 +1,18 @@
+=================== CI ========================
+- developer push code ke github -> Job Jenkins CI otomatis trigger
+- build & Test maven (Java)
+- Sonarqube buat quality scan, ada webhook yang bakal mengirim jawaban (passed/failed) ke jenkins
+- kalo passed build & push image ke dockerhub
+- Jenkins CI kirim IMAGE_TAG ke Jenkins CD (stage Trigger CD Pipeline)
+
+===================== CD =========================
+- job jalan karena dapet trigger dari Jenkins CI
+- pull repo gitops
+- update file deployment.yaml dengan image tag terbaru 
+- push code terbaru ke repo gitops
+
+======================= ArgoCD ===================
+- ketika repo gitops commit akan terdetect di argocd (commit file deployment.yml terbaru)
+- pull manifest terbaru dari gitops repo
+- EKS pull image dari Docker Hub sesuai tag di deployment.yaml
+- apply ke EKS cluster buat update pod dengan image baru dari dockerhub (ini connect repo, cluster dulu)
