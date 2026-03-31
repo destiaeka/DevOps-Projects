@@ -749,16 +749,16 @@ Go to Jenkins Dashboard again
 
 ***Note***: *Now you can test this pipeline as many times as you want by changing to the code and pushing them to GitHub*
 
-[argocd](image/1.jpeg)
-[argocd](image/2.jpeg)
-[dockerhub](image/3.jpeg)
-[eks](image/4.jpeg)
-[instance](image/5.jpeg)
-[sonarqube](image/6.jpeg)
-[jenkins](image/7.jpeg)
-[jenkins-stage](image/8.jpeg)
-[jenkins-stage](image/9.jpeg)
-[eks-bostrap](image/10.jpeg)
+![argocd](image/1.jpeg)
+![argocd](image/2.jpeg)
+![dockerhub](image/3.jpeg)
+![eks](image/4.jpeg)
+![instance](image/5.jpeg)
+![sonarqube](image/6.jpeg)
+![jenkins](image/7.jpeg)
+![jenkins-stage](image/8.jpeg)
+![jenkins-stage](image/9.jpeg)
+![eks-bostrap](image/10.jpeg)
 
 # Thank you
 
