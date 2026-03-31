@@ -2,7 +2,7 @@
 
 ## **Project Overview -**
 
-[topology](image/topology.png)
+![topology](image/topology.png)
 
 ## **Repository**
 - Register App CI : [Register App CI Repository](https://github.com/destiaeka/register_app_CICD.git) | Job register-app-ci
