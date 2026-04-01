@@ -4,7 +4,7 @@ resource "aws_instance" "crud_testing_ec2" {
   subnet_id              = aws_subnet.pub_a.id
   vpc_security_group_ids = [aws_security_group.sg_global.id]
   key_name               = "aws"
-  user_data              = ("${path.module}/script.sh")
+  user_data              = file("${path.module}/script.sh")
 
   tags = {
     Name = "crud_testing_ec2"
