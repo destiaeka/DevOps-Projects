@@ -1,0 +1,11 @@
+================ Terraform untuk setup cloud infrastructure ==================
+- vpc, ec2, eks, s3 backend
+- didalam ec2 buat instance, lalu menjalankan jenkins, docker, helm via user data (script.sh)
+
+================= Jenkinsfile ====================
+- clone repo github ke workspace jenkins
+- initialling, validating, terraform plan & apply
+- deploy nginx di eks worker node
+
+================ EKS =================
+- worker node ada di private subnet agar dari client hanya bisa mengakses melalui load balancer
