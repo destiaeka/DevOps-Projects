@@ -1,0 +1,11 @@
+================= Flow ===================
+- developer push code ke github
+- jenkins clone repo ke workspace
+- ada security  scanning
+    - owasp: dependency vulnerabilities
+    - Trivy File Scan: scan source code/filesystem
+    - SonarQube: scan kualitas & bug kode
+- kode passed lanjut build image, push ke hub
+- Trivy scan docker image
+- deploy ke container
+- deploy to EKS pakai file K8S/deployment.yml
